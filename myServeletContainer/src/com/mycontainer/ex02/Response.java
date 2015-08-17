@@ -136,4 +136,16 @@ public class Response implements ServletResponse{
 		
 	}
 
+	@Override
+	public String getContentType() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void setCharacterEncoding(String arg0) {
+		// TODO Auto-generated method stub
+		
+	}
+
 }
