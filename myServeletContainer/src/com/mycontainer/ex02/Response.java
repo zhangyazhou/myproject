@@ -10,8 +10,6 @@ import java.util.Locale;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.ServletResponse;
 
-import com.mycontainer.ex01.HttpServer;
-import com.mycontainer.ex01.Request;
 
 public class Response implements ServletResponse{
 
@@ -32,7 +30,7 @@ public class Response implements ServletResponse{
 		byte[] bytes = new byte[BUFFER_SIZE];
 		FileInputStream fis = null;
 		try {
-			File file = new File(HttpServer.WEB_ROOT, request.getUri());
+			File file = new File(Constants.WEB_ROOT, request.getUri());
 			if (file.exists()) {
 				fis = new FileInputStream(file);
 				int ch = fis.read(bytes, 0, BUFFER_SIZE);
