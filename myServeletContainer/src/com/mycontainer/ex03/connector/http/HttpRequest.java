@@ -7,9 +7,11 @@ import java.io.UnsupportedEncodingException;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.security.Principal;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Date;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Locale;
@@ -29,6 +31,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import javax.servlet.http.Part;
 
+import org.apache.catalina.util.Enumerator;
 import org.apache.catalina.util.ParameterMap;
 import org.apache.catalina.util.RequestUtil;
 
@@ -105,7 +108,7 @@ public class HttpRequest implements HttpServletRequest {
 	public HttpRequest(InputStream input) {
 		this.input = input;
 	}
-	
+
 	public void addHeader(String name, String value) {
 		name = name.toLowerCase();
 		synchronized (headers) {
@@ -117,12 +120,11 @@ public class HttpRequest implements HttpServletRequest {
 			values.add(value);
 		}
 	}
-	
+
 	/**
-	 * Parse the parameters of this request, if it has not already
-	 * occurred.
-	 * If parameters are present in both the query string and the request
-	 * content, they are mergered.
+	 * Parse the parameters of this request, if it has not already occurred. If
+	 * parameters are present in both the query string and the request content,
+	 * they are mergered.
 	 * 
 	 */
 	protected void parseParameters() {
@@ -135,22 +137,22 @@ public class HttpRequest implements HttpServletRequest {
 		String encoding = getCharacterEncoding();
 		if (encoding == null)
 			encoding = "ISO-8859-1";
-		//Parse any parameters specified in the query string
+		// Parse any parameters specified in the query string
 		String queryString = getQueryString();
 		RequestUtil.parseParameters(results, queryString, encoding);
-		
-		//Parse any parameters specified int the input stream
+
+		// Parse any parameters specified int the input stream
 		String contentType = getContentType();
 		if (contentType == null)
 			contentType = "";
 		int semicolon = contentType.indexOf(';');
 		if (semicolon >= 0) {
 			contentType = contentType.substring(0, semicolon).trim();
-		}
-		else {
+		} else {
 			contentType = contentType.trim();
 		}
-		if("POST".equals(getMethod()) && (getContentLength() > 0)&& "application/x-www-form-urlencoded".equals(contentType)) {
+		if ("POST".equals(getMethod()) && (getContentLength() > 0)
+				&& "application/x-www-form-urlencoded".equals(contentType)) {
 			try {
 				int max = getContentLength();
 				int len = 0;
@@ -168,49 +170,118 @@ public class HttpRequest implements HttpServletRequest {
 					throw new RuntimeException("Content length mismatch");
 				}
 				RequestUtil.parseParameters(results, buf, encoding);
-			}
-			catch (UnsupportedEncodingException e) {
+			} catch (UnsupportedEncodingException e) {
 				;
-			}
-			catch (IOException e) {
+			} catch (IOException e) {
 				throw new RuntimeException("Content read fail");
 			}
 		}
-		
-		//Store the final results
+
+		// Store the final results
 		results.setLocked(true);
 		parsed = true;
 		parameters = results;
 	}
-	
+
 	public void addCookie(Cookie cookie) {
 		synchronized (cookies) {
 			cookies.add(cookie);
 		}
 	}
-	
+
 	public ServletInputStream createInputStream() throws IOException {
 		return (new RequestStream(this));
 	}
-	
+
 	public InputStream getStream() {
 		return input;
 	}
-	
-	
-	
-	
 
-	@Override
+	public void setContentLength(int length) {
+		this.contentLength = length;
+	}
+
+	public void setContentType(String type) {
+		this.contentType = type;
+	}
+
+	public void setInet(InetAddress inetAddress) {
+		this.inetAddress = inetAddress;
+	}
+
+	public void setContextPath(String path) {
+		if (path == null)
+			this.contextPath = "";
+		else
+			this.contextPath = path;
+	}
+
+	public void setMethod(String method) {
+		this.method = method;
+	}
+
+	public void setPathInfo(String path) {
+		this.pathInfo = path;
+	}
+
+	public void setProtocol(String protocol) {
+		this.protocol = protocol;
+	}
+
+	public void setQueryString(String queryString) {
+		this.queryString = queryString;
+	}
+
+	public void setRequestURI(String requestURI) {
+		this.requestURI = requestURI;
+	}
+
+	// Set the name of the server (virtual host) to process this request.
+	public void setServerName(String name) {
+		this.serverName = name;
+	}
+
+	// Set the port number of the server to process this request
+	public void setServerPort(int port) {
+		this.serverPort = port;
+	}
+
+	public void setSocket(Socket socket) {
+		this.socket = socket;
+	}
+
+	/**
+	 * Set a flag indicating whether or not the requested session ID for this
+	 * request came in through a cookie. This is normally called by the HTTP
+	 * Connector, when it parses the request headers.
+	 *
+	 * @param flag
+	 *            The new flag
+	 */
+	public void setRequestedSessionCookie(boolean flag) {
+		this.requestedSessionCookie = flag;
+	}
+
+	public void setRequestedSessionId(String requestedSessionId) {
+		this.requestedSessionId = requestedSessionId;
+	}
+
+	public void setRequestedSessionURL(boolean flag) {
+		requestedSessionURL = flag;
+	}
+
+	// implementation of the HttpServerRequest
 	public Object getAttribute(String name) {
-		// TODO Auto-generated method stub
-		return null;
+		synchronized (attributes) {
+			return (attributes.get(name));
+		}
 	}
 
 	@Override
 	public Enumeration<String> getAttributeNames() {
-		// TODO Auto-generated method stubr
-		return null;
+		synchronized (attributes) {
+			return (new Enumerator(attributes.keySet()));
+		}
 	}
 
 	@Override
@@ -227,20 +298,22 @@ public class HttpRequest implements HttpServletRequest {
 
 	@Override
 	public int getContentLength() {
-		// TODO Auto-generated method stub
-		return 0;
+		return contentLength;
 	}
 
 	@Override
 	public String getContentType() {
-		// TODO Auto-generated method stub
-		return null;
+		return contentType;
 	}
 
 	@Override
 	public ServletInputStream getInputStream() throws IOException {
-		// TODO Auto-generated method stub
-		return null;
+		if (reader != null)
+		      throw new IllegalStateException("getInputStream has been called");
+
+		    if (stream == null)
+		      stream = createInputStream();
+		    return (stream);
 	}
 
 	@Override
@@ -425,38 +498,75 @@ public class HttpRequest implements HttpServletRequest {
 
 	@Override
 	public Cookie[] getCookies() {
-		// TODO Auto-generated method stub
-		return null;
+		synchronized (cookies) {
+			if(cookies.size() < 1)
+				return null;
+			Cookie results[] = new Cookie[cookies.size()];
+			return ((Cookie[]) cookies.toArray(results));
+		}
 	}
 
 	@Override
 	public long getDateHeader(String name) {
-		// TODO Auto-generated method stub
-		return 0;
+	    String value = getHeader(name);
+	    if (value == null)
+	      return (-1L);
+
+	    // Work around a bug in SimpleDateFormat in pre-JDK1.2b4
+	    // (Bug Parade bug #4106807)
+	    value += " ";
+
+	    // Attempt to convert the date header in a variety of formats
+	    for (int i = 0; i < formats.length; i++) {
+	      try {
+	        Date date = formats[i].parse(value);
+	        return (date.getTime());
+	      }
+	      catch (ParseException e) {
+	        ;
+	      }
+	    }
+	    throw new IllegalArgumentException(value);
 	}
 
 	@Override
 	public String getHeader(String name) {
-		// TODO Auto-generated method stub
-		return null;
+		 name = name.toLowerCase();
+		    synchronized (headers) {
+		      ArrayList values = (ArrayList) headers.get(name);
+		      if (values != null)
+		        return ((String) values.get(0));
+		      else
+		        return null;
+		    }
 	}
 
 	@Override
 	public Enumeration<String> getHeaders(String name) {
-		// TODO Auto-generated method stub
-		return null;
+		name = name.toLowerCase();
+	    synchronized (headers) {
+	      ArrayList values = (ArrayList) headers.get(name);
+	      if (values != null)
+	        return (new Enumerator(values));
+	      else
+	        return (new Enumerator(empty));
+	    }
 	}
 
 	@Override
 	public Enumeration<String> getHeaderNames() {
-		// TODO Auto-generated method stub
-		return null;
+		synchronized (headers) {
+		      return (new Enumerator(headers.keySet()));
+		    }
 	}
 
 	@Override
 	public int getIntHeader(String name) {
-		// TODO Auto-generated method stub
-		return 0;
+		String value = getHeader(name);
+	    if (value == null)
+	      return (-1);
+	    else
+	      return (Integer.parseInt(value));
 	}
 
 	@Override
@@ -479,8 +589,7 @@ public class HttpRequest implements HttpServletRequest {
 
 	@Override
 	public String getContextPath() {
-		// TODO Auto-generated method stub
-		return null;
+		return contextPath;
 	}
 
 	@Override
