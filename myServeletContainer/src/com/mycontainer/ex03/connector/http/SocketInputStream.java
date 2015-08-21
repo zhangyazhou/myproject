@@ -53,8 +53,7 @@ public class SocketInputStream extends InputStream {
 
 	protected static StringManager sm = StringManager.getManager(Constants.Package);
 
-	public void readRequestLine(HttpRequestLine requestLine) throws IOException {
-		// recycling check
+	public void readRequestLine(HttpRequestLine requestLine) throws IOException { // recycling check
 		if (requestLine.methodEnd != 0)
 			requestLine.recycle();
 
