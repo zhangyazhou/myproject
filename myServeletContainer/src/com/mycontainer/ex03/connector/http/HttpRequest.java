@@ -3,6 +3,7 @@ package com.mycontainer.ex03.connector.http;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.net.InetAddress;
 import java.net.Socket;
@@ -34,6 +35,8 @@ import javax.servlet.http.Part;
 import org.apache.catalina.util.Enumerator;
 import org.apache.catalina.util.ParameterMap;
 import org.apache.catalina.util.RequestUtil;
+
+import com.mycontainer.ex03.RequestStream;
 
 public class HttpRequest implements HttpServletRequest {
 
@@ -309,41 +312,48 @@ public class HttpRequest implements HttpServletRequest {
 	@Override
 	public ServletInputStream getInputStream() throws IOException {
 		if (reader != null)
-		      throw new IllegalStateException("getInputStream has been called");
+			throw new IllegalStateException("getInputStream has been called");
 
-		    if (stream == null)
-		      stream = createInputStream();
-		    return (stream);
+		if (stream == null)
+			stream = createInputStream();
+		return (stream);
 	}
 
 	@Override
 	public String getParameter(String name) {
-		// TODO Auto-generated method stub
-		return null;
+		parseParameters();
+		String values[] = (String[]) parameters.get(name);
+		if (values != null)
+			return (values[0]);
+		else
+			return (null);
 	}
 
 	@Override
 	public Enumeration<String> getParameterNames() {
-		// TODO Auto-generated method stub
-		return null;
+		parseParameters();
+		return (new Enumerator(parameters.keySet()));
 	}
 
 	@Override
 	public String[] getParameterValues(String name) {
-		// TODO Auto-generated method stub
-		return null;
+		parseParameters();
+		String values[] = (String[]) parameters.get(name);
+		if (values != null)
+			return (values);
+		else
+			return null;
 	}
 
 	@Override
 	public Map<String, String[]> getParameterMap() {
-		// TODO Auto-generated method stub
-		return null;
+		parseParameters();
+		return (this.parameters);
 	}
 
 	@Override
 	public String getProtocol() {
-		// TODO Auto-generated method stub
-		return null;
+		return protocol;
 	}
 
 	@Override
@@ -366,8 +376,16 @@ public class HttpRequest implements HttpServletRequest {
 
 	@Override
 	public BufferedReader getReader() throws IOException {
-		// TODO Auto-generated method stub
-		return null;
+		if (stream != null)
+			throw new IllegalStateException("getInputStream has been called.");
+		if (reader == null) {
+			String encoding = getCharacterEncoding();
+			if (encoding == null)
+				encoding = "ISO-8859-1";
+			InputStreamReader isr = new InputStreamReader(createInputStream(), encoding);
+			reader = new BufferedReader(isr);
+		}
+		return (reader);
 	}
 
 	@Override
@@ -499,7 +517,7 @@ public class HttpRequest implements HttpServletRequest {
 	@Override
 	public Cookie[] getCookies() {
 		synchronized (cookies) {
-			if(cookies.size() < 1)
+			if (cookies.size() < 1)
 				return null;
 			Cookie results[] = new Cookie[cookies.size()];
 			return ((Cookie[]) cookies.toArray(results));
@@ -508,77 +526,74 @@ public class HttpRequest implements HttpServletRequest {
 
 	@Override
 	public long getDateHeader(String name) {
-	    String value = getHeader(name);
-	    if (value == null)
-	      return (-1L);
+		String value = getHeader(name);
+		if (value == null)
+			return (-1L);
 
-	    // Work around a bug in SimpleDateFormat in pre-JDK1.2b4
-	    // (Bug Parade bug #4106807)
-	    value += " ";
+		// Work around a bug in SimpleDateFormat in pre-JDK1.2b4
+		// (Bug Parade bug #4106807)
+		value += " ";
 
-	    // Attempt to convert the date header in a variety of formats
-	    for (int i = 0; i < formats.length; i++) {
-	      try {
-	        Date date = formats[i].parse(value);
-	        return (date.getTime());
-	      }
-	      catch (ParseException e) {
-	        ;
-	      }
-	    }
-	    throw new IllegalArgumentException(value);
+		// Attempt to convert the date header in a variety of formats
+		for (int i = 0; i < formats.length; i++) {
+			try {
+				Date date = formats[i].parse(value);
+				return (date.getTime());
+			} catch (ParseException e) {
+				;
+			}
+		}
+		throw new IllegalArgumentException(value);
 	}
 
 	@Override
 	public String getHeader(String name) {
-		 name = name.toLowerCase();
-		    synchronized (headers) {
-		      ArrayList values = (ArrayList) headers.get(name);
-		      if (values != null)
-		        return ((String) values.get(0));
-		      else
-		        return null;
-		    }
+		name = name.toLowerCase();
+		synchronized (headers) {
+			ArrayList values = (ArrayList) headers.get(name);
+			if (values != null)
+				return ((String) values.get(0));
+			else
+				return null;
+		}
 	}
 
 	@Override
 	public Enumeration<String> getHeaders(String name) {
 		name = name.toLowerCase();
-	    synchronized (headers) {
-	      ArrayList values = (ArrayList) headers.get(name);
-	      if (values != null)
-	        return (new Enumerator(values));
-	      else
-	        return (new Enumerator(empty));
-	    }
+		synchronized (headers) {
+			ArrayList values = (ArrayList) headers.get(name);
+			if (values != null)
+				return (new Enumerator(values));
+			else
+				return (new Enumerator(empty));
+		}
 	}
 
 	@Override
 	public Enumeration<String> getHeaderNames() {
 		synchronized (headers) {
-		      return (new Enumerator(headers.keySet()));
-		    }
+			return (new Enumerator(headers.keySet()));
+		}
 	}
 
 	@Override
 	public int getIntHeader(String name) {
 		String value = getHeader(name);
-	    if (value == null)
-	      return (-1);
-	    else
-	      return (Integer.parseInt(value));
+		if (value == null)
+			return (-1);
+		else
+			return (Integer.parseInt(value));
 	}
 
 	@Override
 	public String getMethod() {
-		// TODO Auto-generated method stub
-		return null;
+		return method;
 	}
 
 	@Override
 	public String getPathInfo() {
-		// TODO Auto-generated method stub
-		return null;
+		return pathInfo;
 	}
 
 	@Override
@@ -594,8 +609,7 @@ public class HttpRequest implements HttpServletRequest {
 
 	@Override
 	public String getQueryString() {
-		// TODO Auto-generated method stub
-		return null;
+		return queryString;
 	}
 
 	@Override
@@ -624,8 +638,7 @@ public class HttpRequest implements HttpServletRequest {
 
 	@Override
 	public String getRequestURI() {
-		// TODO Auto-generated method stub
-		return null;
+		return requestURI;
 	}
 
 	@Override
@@ -672,8 +685,7 @@ public class HttpRequest implements HttpServletRequest {
 
 	@Override
 	public boolean isRequestedSessionIdFromUrl() {
-		// TODO Auto-generated method stub
-		return false;
+		return isRequestedSessionIdFromURL();
 	}
 
 	@Override
@@ -704,6 +716,16 @@ public class HttpRequest implements HttpServletRequest {
 	public Part getPart(String name) throws IOException, IllegalStateException, ServletException {
 		// TODO Auto-generated method stub
 		return null;
+	}
+
+	/**
+	 * Set the authorization credentials sent with this request.
+	 *
+	 * @param authorization
+	 *            The new authorization credentials
+	 */
+	public void setAuthorization(String authorization) {
+		this.authorization = authorization;
 	}
 
 }
