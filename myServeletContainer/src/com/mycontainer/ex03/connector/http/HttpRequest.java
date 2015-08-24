@@ -36,7 +36,7 @@ import org.apache.catalina.util.Enumerator;
 import org.apache.catalina.util.ParameterMap;
 import org.apache.catalina.util.RequestUtil;
 
-import com.mycontainer.ex03.RequestStream;
+import com.mycontainer.ex03.connector.RequestStream;
 
 public class HttpRequest implements HttpServletRequest {
 
