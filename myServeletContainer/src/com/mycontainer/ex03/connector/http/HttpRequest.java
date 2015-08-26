@@ -142,7 +142,11 @@ public class HttpRequest implements HttpServletRequest {
 			encoding = "ISO-8859-1";
 		// Parse any parameters specified in the query string
 		String queryString = getQueryString();
-		RequestUtil.parseParameters(results, queryString, encoding);
+		try {
+			RequestUtil.parseParameters(results, queryString, encoding);
+		} catch (UnsupportedEncodingException e1) {
+			e1.printStackTrace();
+		}
 
 		// Parse any parameters specified int the input stream
 		String contentType = getContentType();

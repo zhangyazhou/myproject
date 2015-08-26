@@ -20,7 +20,7 @@ import javax.servlet.ServletOutputStream;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.catalina.util
+import org.apache.catalina.util.CookieTools;
 
 import com.mycontainer.ex03.connector.ResponseStream;
 import com.mycontainer.ex03.connector.ResponseWriter;
