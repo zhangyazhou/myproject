@@ -47,7 +47,8 @@ public class RequestStream extends ServletInputStream {
 	}
 	
 	/**
-	 * Close this input stream. No physical level I-O is performed, but any further attempt to read from this stream will throw 
+	 * Close this input stream. No physical level I-O is performed,
+	 *  but any further attempt to read from this stream will throw 
 	 *an IOException.
 	 *If a content length has been set but not all of the bytes have
 	 *yet been

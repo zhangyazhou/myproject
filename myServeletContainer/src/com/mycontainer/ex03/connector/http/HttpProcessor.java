@@ -30,7 +30,7 @@ public class HttpProcessor {
 		this.connector = connector;
 	}
 
-	protected StringManager sm = StringManager.getManager("ex03.pyrmont.connector.http");
+	protected StringManager sm = StringManager.getManager("com.mycontainer.ex03.connector.http");
 
 	public void process(Socket socket) {
 		SocketInputStream input = null;

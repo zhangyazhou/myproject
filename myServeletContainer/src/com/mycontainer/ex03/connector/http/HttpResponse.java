@@ -205,7 +205,7 @@ public class HttpResponse implements HttpServletResponse {
 	}
 
 	// Send the HTTP response headers, if this has not already occurred.
-	protected void sednHeaders() throws IOException {
+	protected void sendHeaders() throws IOException {
 		if (isCommitted())
 			return;
 		// Prepare a suitable output writer
